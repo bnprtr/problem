@@ -62,13 +62,13 @@ func main() {
 }
 
 func generateStatusCodeToTitleTypeFunc(output *os.File, typeNames []string) {
-	fmt.Fprint(output, `func convertToTitle(statusCode int, title string) error {
+	fmt.Fprint(output, `func convertToTitle(statusCode int, title string) (error, error) {
     switch statusCode {
 `)
 	for _, t := range typeNames {
-		fmt.Fprintf(output, "    case http.%s: return %s(title)\n", t, t)
+		fmt.Fprintf(output, "    case http.%s: return %s(title), StackTraced[%s](title)\n", t, t, t)
 	}
-	fmt.Fprintln(output, "    default: return StatusInternalServerError(title)")
+	fmt.Fprintln(output, "    default: return StatusInternalServerError(title), StackTraced[StatusInternalServerError](title)")
 	fmt.Fprintln(output, "    }")
 	fmt.Fprintln(output, "}")
 	fmt.Fprintln(output, "")
@@ -97,7 +97,7 @@ func generateErrorMethod(output *os.File, typeName string) {
 // generateNewMethod creates an Error() string method for the identified string-based type.
 func generateNewMethod(output *os.File, typeName string) {
 	fmt.Fprintf(output, "func (e %s) New(message string) Error {\n", typeName)
-	fmt.Fprintf(output, "    return New(e).WithMessage(message)\n")
+	fmt.Fprintf(output, "    return New(e).SetMessage(message)\n")
 	fmt.Fprintln(output, "}")
 	fmt.Fprintln(output)
 }

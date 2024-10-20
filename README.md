@@ -11,7 +11,7 @@ This library provides a structured way to handle HTTP errors in Go applications,
 - Custom error types for HTTP status codes.
 - Methods to create new errors with messages.
 - JSON serialization of errors.
-- Logging support.
+- `slog` Logging support.
 
 ## Installation
 
@@ -37,7 +37,9 @@ import (
 const (
   InvalidInput problem.StatusBadRequest = "invalid input"
   InvalidJSON problem.StatusBadRequest = "invalid json"
-  InternalServerError problem.StatusInternalServerError = "internal server error"
+
+  // always capture stack trace on all InternalServerErrors
+  InternalServerError problem.StackTraced[problem.StatusInternalServerError] = "internal server error"
 )
 
 type Request struct {
@@ -50,7 +52,7 @@ func MyHandler(w http.ResponseWriter, r *http.Request) {
   var statusCode problem.StatusCode
   if !errors.As(err, &statusCode) {
    // unknown error!
-   err = InternalServerError.New("unexpected error occurred.").WithInternalErrors(err)
+   err = InternalServerError.New("unexpected error occurred.").AddInternalErrors(err)
    statusCode = InternalServerError.StatusCode()
   }
   w.Header().Set("Content-Type", "application/problem+json")
@@ -62,7 +64,7 @@ func MyHandler(w http.ResponseWriter, r *http.Request) {
 func (r *http.Request) error {
  var req Request
  if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-  return InvalidJSON.New(err.Error()).WithInternalErrors(err)
+  return InvalidJSON.New(err.Error()).AddInternalErrors(err)
  }
 
  if err := validate(req); err != nil {
@@ -76,14 +78,14 @@ func validate(r Request) error {
  var failed bool
  if r.Name == "" {
   failed = true
-  err = err.WithDetails(problem.NewFieldDetail("Name", r.Name, "required"))
+  err = err.AddDetails(problem.NewFieldDetail("Name", r.Name, "required"))
  }
  if r.URL != "" {
   _, e := url.Parse(r.URL)
   if e != nil {
    failed = true
-   err = err.WithInternalErrors(e)
-   err = err.WithDetails(problem.NewFieldDetail("URL", r.URL, e.Error()))
+   err = err.AddInternalErrors(e)
+   err = err.AddDetails(problem.NewFieldDetail("URL", r.URL, e.Error()))
   }
  }
  if failed {

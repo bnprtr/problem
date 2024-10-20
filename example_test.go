@@ -8,9 +8,11 @@ import (
 )
 
 const (
-	InvalidJSON         problem.StatusBadRequest          = "invalid json"
-	InternalServerError problem.StatusInternalServerError = "internal server error"
-	InvalidInput        problem.StatusBadRequest          = "invalid input"
+	InvalidJSON  problem.StatusBadRequest = "invalid json"
+	InvalidInput problem.StatusBadRequest = "invalid input"
+
+	// InternalServerError is essentially an unhandled error, always capture the stack trace for debugging purposes.
+	InternalServerError problem.StackTraced[problem.StatusInternalServerError] = "internal server error"
 )
 
 type Request struct {
@@ -34,14 +36,14 @@ func validate(r Request) error {
 	var failed bool
 	if r.Name == "" {
 		failed = true
-		err = err.WithDetails(problem.NewFieldDetail("Name", r.Name, "required"))
+		err = err.AddDetails(problem.NewFieldDetail("Name", r.Name, "required"))
 	}
 	if r.URL != "" {
 		_, e := url.Parse(r.URL)
 		if e != nil {
 			failed = true
-			err = err.WithInternalErrors(e)
-			err = err.WithDetails(problem.NewFieldDetail("URL", r.URL, e.Error()))
+			err = err.AddInternalErrors(e)
+			err = err.AddDetails(problem.NewFieldDetail("URL", r.URL, e.Error()))
 		}
 	}
 	if failed {
