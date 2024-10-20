@@ -212,7 +212,7 @@ func (e Error) SetMessage(message string) Error {
 
 // Stack captures the stack trace from the point where it is called and stores it in the Stacktrace property.
 func (e Error) Stack() Error {
-	const skipFrames = 2 // Skip the first 2 frames to exclude runtime.Callers and Stack
+	const skipFrames = 3 // Skip the first 3 frames to exclude runtime.Callers and Stack
 	return e.captureStack(skipFrames)
 }
 
@@ -253,7 +253,7 @@ func (e StackTraced[T]) Error() string {
 }
 
 func (e StackTraced[T]) New(message string) Error {
-	return T(e).New(message).captureStack(-4)
+	return T(e).New(message).captureStack(3)
 }
 
 func (e StackTraced[T]) StatusCode() StatusCode {
