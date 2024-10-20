@@ -2,6 +2,9 @@
 
 ## 0.0.1 (2024-10-20)
 
+### Features
+
+* Add initial implementation([#1](https://github.com/bnprtr/problem/issues/1)) ([8773c78](https://github.com/bnprtr/problem/commit/8773c784ebce78a359d7e65884b3ba787cb3badc))
 
 ### Bug Fixes
 
