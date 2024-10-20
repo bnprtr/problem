@@ -16,6 +16,7 @@ func TestError(t *testing.T) {
 	err := BadRequest.New("Got orange. Wanted duck.").WithDetails("orange", struct{ Count int }{3})
 
 	t.Run("errors.Is can extract the Title", func(t *testing.T) {
+		t.Logf("error: %+v", err)
 		if !errors.Is(err, BadRequest) {
 			t.Errorf("expected: %+v, got: %+v", BadRequest, err)
 		}

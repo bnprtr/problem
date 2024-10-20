@@ -8,7 +8,9 @@ import (
 )
 
 const (
-	InvalidInput problem.StatusBadRequest = "invalid input"
+	InvalidJSON         problem.StatusBadRequest          = "invalid json"
+	InternalServerError problem.StatusInternalServerError = "internal server error"
+	InvalidInput        problem.StatusBadRequest          = "invalid input"
 )
 
 type Request struct {

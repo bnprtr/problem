@@ -42,6 +42,7 @@ func main() {
 	fmt.Fprintf(output, "package %s\n\n", packageName)
 	fmt.Fprintln(output, `import "net/http"`)
 
+	var typeNames []string
 	// Traverse AST and find string types
 	for _, decl := range file.Decls {
 		if genDecl, ok := decl.(*ast.GenDecl); ok && genDecl.Tok == token.TYPE {
@@ -51,16 +52,31 @@ func main() {
 						generateErrorMethod(output, typeSpec.Name.Name)
 						generateStatusCodeMethod(output, typeSpec.Name.Name)
 						generateNewMethod(output, typeSpec.Name.Name)
+						typeNames = append(typeNames, typeSpec.Name.Name)
 					}
 				}
 			}
 		}
 	}
+	generateStatusCodeToTitleTypeFunc(output, typeNames)
+}
+
+func generateStatusCodeToTitleTypeFunc(output *os.File, typeNames []string) {
+	fmt.Fprint(output, `func convertToTitle(statusCode int, title string) error {
+    switch statusCode {
+`)
+	for _, t := range typeNames {
+		fmt.Fprintf(output, "    case http.%s: return %s(title)\n", t, t)
+	}
+	fmt.Fprintln(output, "    default: return StatusInternalServerError(title)")
+	fmt.Fprintln(output, "    }")
+	fmt.Fprintln(output, "}")
+	fmt.Fprintln(output, "")
 }
 
 func generateStatusCodeMethod(output *os.File, typeName string) {
-	fmt.Fprintf(output, "func (e %s) StatusCode() int {\n", typeName)
-	fmt.Fprintf(output, "    return http.%s\n", typeName)
+	fmt.Fprintf(output, "func (e %s) StatusCode() StatusCode {\n", typeName)
+	fmt.Fprintf(output, "    return StatusCode(http.%s)\n", typeName)
 	fmt.Fprintln(output, "}")
 	fmt.Fprintln(output)
 }
@@ -80,7 +96,7 @@ func generateErrorMethod(output *os.File, typeName string) {
 
 // generateNewMethod creates an Error() string method for the identified string-based type.
 func generateNewMethod(output *os.File, typeName string) {
-	fmt.Fprintf(output, "func (e %s) New(message string) Error[%s] {\n", typeName, typeName)
+	fmt.Fprintf(output, "func (e %s) New(message string) Error {\n", typeName)
 	fmt.Fprintf(output, "    return New(e).WithMessage(message)\n")
 	fmt.Fprintln(output, "}")
 	fmt.Fprintln(output)

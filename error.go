@@ -5,37 +5,40 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"strconv"
 )
 
 type (
 	ErrorTitle interface {
 		~string
 		error
-		StatusCode() int
+		StatusCode() StatusCode
 	}
-	Error[T ErrorTitle] struct {
-		Title          T       `json:"title"`
-		Message        string  `json:"message"`
-		Internal       []error `json:"-"`
-		Details        []any   `json:"details"`
-		HttpStatusCode int     `json:"statusCode"`
+	Error struct {
+		Title          string     `json:"title"`
+		Message        string     `json:"message"`
+		Internal       []error    `json:"-"`
+		Details        []any      `json:"details"`
+		HttpStatusCode StatusCode `json:"statusCode"`
 	}
+	StatusCode int
+	Details    []any
 )
 
-func New[T ErrorTitle](title T) Error[T] {
-	return Error[T]{
-		Title:          title,
+func New[T ErrorTitle](title T) Error {
+	return Error{
+		Title:          string(title),
 		HttpStatusCode: title.StatusCode(),
 	}
 }
 
-func (e Error[T]) Error() string {
+func (e Error) Error() string {
 	presentation := struct {
-		Title          T       `json:"title"`
-		Message        string  `json:"message"`
-		Internal       []error `json:"internalError,omitempty"`
-		Details        []any   `json:"details,omitempty"`
-		HttpStatusCode int     `json:"statusCode"`
+		Title          string     `json:"title"`
+		Message        string     `json:"message"`
+		Internal       []error    `json:"internalError,omitempty"`
+		Details        []any      `json:"details,omitempty"`
+		HttpStatusCode StatusCode `json:"statusCode"`
 	}(e)
 
 	b, err := json.Marshal(presentation)
@@ -45,11 +48,11 @@ func (e Error[T]) Error() string {
 	return string(b)
 }
 
-func (e Error[T]) Unwrap() []error {
-	return append(e.Internal, e.Title)
+func (e Error) Unwrap() []error {
+	return append(e.Internal, convertToTitle(int(e.HttpStatusCode), e.Title), e.HttpStatusCode, Details(e.Details))
 }
 
-func (e Error[T]) LogValue() slog.Value {
+func (e Error) LogValue() slog.Value {
 	values := []slog.Attr{
 		slog.String("title", string(e.Title)),
 		slog.String("message", string(e.Message)),
@@ -65,22 +68,31 @@ func (e Error[T]) LogValue() slog.Value {
 	)
 }
 
-func (e Error[T]) WithTitle(title T) Error[T] {
+func (e Error) WithTitle(title string) Error {
 	e.Title = title
 	return e
 }
 
-func (e Error[T]) WithDetails(details ...any) Error[T] {
+func (e Error) WithDetails(details ...any) Error {
 	e.Details = append(e.Details, details...)
 	return e
 }
 
-func (e Error[T]) WithInternalErrors(errors ...error) Error[T] {
+func (e Error) WithInternalErrors(errors ...error) Error {
 	e.Internal = append(e.Internal, errors...)
 	return e
 }
 
-func (e Error[T]) WithMessage(message string) Error[T] {
+func (e Error) WithMessage(message string) Error {
 	e.Message = message
 	return e
+}
+
+func (s StatusCode) Error() string {
+	return strconv.Itoa(int(s))
+}
+
+func (s Details) Error() string {
+	b, _ := json.Marshal(s)
+	return string(b)
 }
