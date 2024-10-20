@@ -1,6 +1,6 @@
 package problem
 
-//go:generate ./gen/generator http_status_code.go
+//go:generate ./bin/generator http_status_code.go
 
 type (
 	StatusBadRequest string

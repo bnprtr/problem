@@ -42,15 +42,12 @@ func main() {
 	fmt.Fprintf(output, "package %s\n\n", packageName)
 	fmt.Fprintln(output, `import "net/http"`)
 
-	var typeNames []string
-
 	// Traverse AST and find string types
 	for _, decl := range file.Decls {
 		if genDecl, ok := decl.(*ast.GenDecl); ok && genDecl.Tok == token.TYPE {
 			for _, spec := range genDecl.Specs {
 				if typeSpec, ok := spec.(*ast.TypeSpec); ok {
 					if ident, ok := typeSpec.Type.(*ast.Ident); ok && ident.Name == "string" {
-						typeNames = append(typeNames, typeSpec.Name.Name)
 						generateErrorMethod(output, typeSpec.Name.Name)
 						generateStatusCodeMethod(output, typeSpec.Name.Name)
 						generateNewMethod(output, typeSpec.Name.Name)

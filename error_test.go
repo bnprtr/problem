@@ -1,7 +1,9 @@
 package problem
 
 import (
+	"bytes"
 	"errors"
+	"log/slog"
 	"testing"
 )
 
@@ -36,8 +38,12 @@ func TestError(t *testing.T) {
 }
 
 func TestErrorLogValue(t *testing.T) {
-	err := New(BadRequest)
+	err := BadRequest.New("Got orange. Wanted duck.")
 	t.Run("", func(t *testing.T) {
+		out := bytes.NewBuffer(nil)
+		log := slog.New(slog.NewJSONHandler(out, &slog.HandlerOptions{}))
+		log.Error("error", "err", err)
+		t.Log(out.String())
 		_ = err
 	})
 }

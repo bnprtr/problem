@@ -1,13 +1,13 @@
 package problem
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log/slog"
 )
 
 type (
-	Title      = ErrorTitle
 	ErrorTitle interface {
 		~string
 		error
@@ -30,7 +30,19 @@ func New[T ErrorTitle](title T) Error[T] {
 }
 
 func (e Error[T]) Error() string {
-	return fmt.Errorf("%s: %s. %v, %v", e.Title, e.Message, e.Details, errors.Join(e.Internal...)).Error()
+	presentation := struct {
+		Title          T       `json:"title"`
+		Message        string  `json:"message"`
+		Internal       []error `json:"internalError,omitempty"`
+		Details        []any   `json:"details,omitempty"`
+		HttpStatusCode int     `json:"statusCode"`
+	}(e)
+
+	b, err := json.Marshal(presentation)
+	if err != nil {
+		return fmt.Errorf("%s: %s. details=(%+v), internalErrors=(%+v)", e.Title, e.Message, e.Details, errors.Join(e.Internal...)).Error()
+	}
+	return string(b)
 }
 
 func (e Error[T]) Unwrap() []error {
@@ -38,11 +50,18 @@ func (e Error[T]) Unwrap() []error {
 }
 
 func (e Error[T]) LogValue() slog.Value {
-	return slog.GroupValue(
+	values := []slog.Attr{
 		slog.String("title", string(e.Title)),
 		slog.String("message", string(e.Message)),
-		slog.Any("details", e.Details),
-		slog.Any("internalErrors", e.Internal),
+	}
+	if len(e.Details) > 0 {
+		values = append(values, slog.Any("details", e.Details))
+	}
+	if len(e.Internal) > 0 {
+		values = append(values, slog.Any("internalErrors", e.Internal))
+	}
+	return slog.GroupValue(
+		values...,
 	)
 }
 
