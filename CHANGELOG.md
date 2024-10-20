@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.0.1](https://github.com/bnprtr/problem/compare/v0.0.1...v0.0.1) (2024-10-20)
+
+
+### Bug Fixes
+
+* stack frames for capturing stack trace ([#6](https://github.com/bnprtr/problem/issues/6)) ([5975b3d](https://github.com/bnprtr/problem/commit/5975b3d73238726f9ea0e8c00ef037938ec8982c))
+
+
+### Miscellaneous Chores
+
+* Release-As 0.0.1 ([#9](https://github.com/bnprtr/problem/issues/9)) ([c043169](https://github.com/bnprtr/problem/commit/c04316950c9a4919e29b988f9576901f625b13a7))
+
 ## 0.0.1 (2024-10-20)
 
 ### Features
