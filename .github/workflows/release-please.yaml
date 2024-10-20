@@ -1,0 +1,17 @@
+name: release-please
+permissions:
+  contents: write
+  pull-requests: write
+on:
+  push:
+    branches:
+      - main
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: googleapis/release-please-action@v4
+        with:
+          release-type: go
+          package-name: github.com/bnprtr/bnprtr
+          draft-pull-request: true
