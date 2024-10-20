@@ -134,11 +134,11 @@ func New[T ErrorTitle](title T) Error {
 func (e Error) Error() string {
 	presentation := struct {
 		Title          string     `json:"title"`
-		Message        string     `json:"message"`
+		Message        string     `json:"message,omitempty"`
 		Stacktrace     string     `json:"stacktrace,omitempty"`
 		Internal       []error    `json:"internalError,omitempty"`
 		Details        []any      `json:"details,omitempty"`
-		HttpStatusCode StatusCode `json:"statusCode"`
+		HttpStatusCode StatusCode `json:"-"`
 	}(e)
 
 	b, err := json.Marshal(presentation)

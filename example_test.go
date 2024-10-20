@@ -28,7 +28,7 @@ func ExampleError() {
 	if err := validate(request); err != nil {
 		fmt.Println(err.Error())
 	}
-	// Output: {"title":"invalid input","message":"request input failed validation","internalError":[{"Op":"parse","URL":"%+0","Err":"%+0"}],"details":[{"field":"Name","value":"","reason":"required"},{"field":"URL","value":"%+0","reason":"parse \"%+0\": invalid URL escape \"%+0\""}],"statusCode":400}
+	// Output: {"title":"invalid input","message":"request input failed validation","internalError":[{"Op":"parse","URL":"%+0","Err":"%+0"}],"details":[{"field":"Name","value":"","reason":"required"},{"field":"URL","value":"%+0","reason":"parse \"%+0\": invalid URL escape \"%+0\""}]}
 }
 
 func validate(r Request) error {
